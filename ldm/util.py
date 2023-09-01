@@ -1,5 +1,5 @@
 import importlib
-
+import os
 import torch
 import numpy as np
 from collections import abc
@@ -36,6 +36,27 @@ def log_txt_as_img(wh, xc, size=10):
     txts = np.stack(txts)
     txts = torch.tensor(txts)
     return txts
+
+def download(url, local_path, chunk_size=1024):
+    os.makedirs(os.path.split(local_path)[0], exist_ok=True)
+    with requests.get(url, stream=True) as r:
+        total_size = int(r.headers.get("content-length", 0))
+        with tqdm(total=total_size, unit="B", unit_scale=True) as pbar:
+            with open(local_path, "wb") as f:
+                for data in r.iter_content(chunk_size=chunk_size):
+                    if data:
+                        f.write(data)
+                        pbar.update(chunk_size)
+
+def get_ckpt_path(name, root, check=False):
+    assert name in URL_MAP
+    path = os.path.join(root, CKPT_MAP[name])
+    if not os.path.exists(path) or (check and not md5_hash(path) == MD5_MAP[name]):
+        print("Downloading {} model from {} to {}".format(name, URL_MAP[name], path))
+        download(URL_MAP[name], path)
+        md5 = md5_hash(path)
+        assert md5 == MD5_MAP[name], md5
+    return path
 
 
 def ismap(x):

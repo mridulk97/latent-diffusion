@@ -16,10 +16,13 @@ from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
 from pytorch_lightning.utilities import rank_zero_info
+import ldm.data.constants as CONSTANTS
 
 from ldm.data.base import Txt2ImgIterableBaseDataset
 from ldm.util import instantiate_from_config
 
+def get_monitor(target):
+    return "val" + CONSTANTS.RECLOSS
 
 def get_parser(**parser_kwargs):
     def str2bool(v):
@@ -173,10 +176,12 @@ class DataModuleFromConfig(pl.LightningDataModule):
             self.train_dataloader = self._train_dataloader
         if validation is not None:
             self.dataset_configs["validation"] = validation
-            self.val_dataloader = partial(self._val_dataloader, shuffle=shuffle_val_dataloader)
+            # self.val_dataloader = partial(self._val_dataloader, shuffle=shuffle_val_dataloader)
+            self.val_dataloader = self._val_dataloader
         if test is not None:
             self.dataset_configs["test"] = test
-            self.test_dataloader = partial(self._test_dataloader, shuffle=shuffle_test_loader)
+            # self.test_dataloader = partial(self._test_dataloader, shuffle=shuffle_test_loader)
+            self.test_dataloader = self._test_dataloader
         if predict is not None:
             self.dataset_configs["predict"] = predict
             self.predict_dataloader = self._predict_dataloader
@@ -265,12 +270,14 @@ class SetupCallback(Callback):
                 if 'metrics_over_trainsteps_checkpoint' in self.lightning_config['callbacks']:
                     os.makedirs(os.path.join(self.ckptdir, 'trainstep_checkpoints'), exist_ok=True)
             print("Project config")
-            print(OmegaConf.to_yaml(self.config))
+            # print(OmegaConf.to_yaml(self.config))
+            print(self.config.pretty())
             OmegaConf.save(self.config,
                            os.path.join(self.cfgdir, "{}-project.yaml".format(self.now)))
 
             print("Lightning config")
-            print(OmegaConf.to_yaml(self.lightning_config))
+            # print(OmegaConf.to_yaml(self.lightning_config))
+            print(self.lightning_config.pretty())
             OmegaConf.save(OmegaConf.create({"lightning": self.lightning_config}),
                            os.path.join(self.cfgdir, "{}-lightning.yaml".format(self.now)))
 
@@ -538,6 +545,10 @@ if __name__ == "__main__":
         trainer_kwargs = dict()
 
         # default logger configs
+        # NOTE wandb < 0.10.0 interferes with shutdown
+        # wandb >= 0.10.0 seems to fix it but still interferes with pudb
+        # debugging (wrongly sized pudb ui)
+        # thus prefer testtube for now
         default_logger_cfgs = {
             "wandb": {
                 "target": "pytorch_lightning.loggers.WandbLogger",
@@ -546,6 +557,7 @@ if __name__ == "__main__":
                     "save_dir": logdir,
                     "offline": opt.debug,
                     "id": nowname,
+                    "project": config.model.project
                 }
             },
             "testtube": {
@@ -556,13 +568,25 @@ if __name__ == "__main__":
                 }
             },
         }
-        default_logger_cfg = default_logger_cfgs["testtube"]
-        if "logger" in lightning_config:
-            logger_cfg = lightning_config.logger
-        else:
-            logger_cfg = OmegaConf.create()
+
+        default_logger_cfg = default_logger_cfgs["wandb"] # "testtube" "wandb"
+        logger_cfg = lightning_config.logger or OmegaConf.create()
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
+
+        # Wandb configs
+        if rank_zero_only.rank == 0:
+            trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
+            trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
+        trainer_kwargs["logger"].watch(model, log_freq=100)
+
+        # # default_logger_cfg = default_logger_cfgs["testtube"]
+        # if "logger" in lightning_config:
+        #     logger_cfg = lightning_config.logger
+        # else:
+        #     logger_cfg = OmegaConf.create()
+        # logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
+        # trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
         # specify which metric is used to determine best models
@@ -572,6 +596,10 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
+                "monitor": get_monitor(config.model.target),
+                "save_top_k": 1,
+                "mode": "min",
+                "period": 3,
                 "save_last": True,
             }
         }

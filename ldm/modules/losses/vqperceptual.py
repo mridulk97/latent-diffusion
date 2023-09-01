@@ -3,9 +3,9 @@ from torch import nn
 import torch.nn.functional as F
 from einops import repeat
 
-from taming.modules.discriminator.model import NLayerDiscriminator, weights_init
-from taming.modules.losses.lpips import LPIPS
-from taming.modules.losses.vqperceptual import hinge_d_loss, vanilla_d_loss
+from scripts.modules.discriminator.model import NLayerDiscriminator, weights_init
+from scripts.modules.losses.lpips import LPIPS
+# from scripts.modules.losses.vqperceptual import hinge_d_loss, vanilla_d_loss
 
 
 def hinge_d_loss_with_exemplar_weights(logits_real, logits_fake, weights):
@@ -15,6 +15,19 @@ def hinge_d_loss_with_exemplar_weights(logits_real, logits_fake, weights):
     loss_real = (weights * loss_real).sum() / weights.sum()
     loss_fake = (weights * loss_fake).sum() / weights.sum()
     d_loss = 0.5 * (loss_real + loss_fake)
+    return d_loss
+
+def hinge_d_loss(logits_real, logits_fake):
+    loss_real = torch.mean(F.relu(1. - logits_real))
+    loss_fake = torch.mean(F.relu(1. + logits_fake))
+    d_loss = 0.5 * (loss_real + loss_fake)
+    return d_loss
+
+
+def vanilla_d_loss(logits_real, logits_fake):
+    d_loss = 0.5 * (
+        torch.mean(torch.nn.functional.softplus(-logits_real)) +
+        torch.mean(torch.nn.functional.softplus(logits_fake)))
     return d_loss
 
 def adopt_weight(weight, global_step, threshold=0, value=0.):
@@ -97,7 +110,7 @@ class VQLPIPSWithDiscriminator(nn.Module):
 
     def forward(self, codebook_loss, inputs, reconstructions, optimizer_idx,
                 global_step, last_layer=None, cond=None, split="train", predicted_indices=None):
-        if not exists(codebook_loss):
+        if not torch.is_tensor(codebook_loss):
             codebook_loss = torch.tensor([0.]).to(inputs.device)
         #rec_loss = torch.abs(inputs.contiguous() - reconstructions.contiguous())
         rec_loss = self.pixel_loss(inputs.contiguous(), reconstructions.contiguous())
@@ -123,7 +136,8 @@ class VQLPIPSWithDiscriminator(nn.Module):
             g_loss = -torch.mean(logits_fake)
 
             try:
-                d_weight = self.calculate_adaptive_weight(nll_loss, g_loss, last_layer=last_layer)
+                # d_weight = self.calculate_adaptive_weight(nll_loss, g_loss, last_layer=last_layer)
+                d_weight = self.calculate_adaptive_weight(nll_loss, g_loss, last_layer=last_layer) if self.disc_conditional else torch.tensor(0.0)
             except RuntimeError:
                 assert not self.training
                 d_weight = torch.tensor(0.0)
