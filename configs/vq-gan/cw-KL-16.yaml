@@ -1,16 +1,12 @@
 model:
-  base_learning_rate: 4.5e-6
-  target: ldm.models.autoencoder.AutoencoderKL
+  base_learning_rate: 4.5e-06
+  target: ldm.models.cwautoencoder.CWmodelKL
   project: LDM-base
   params:
-    monitor: "val/rec_loss"
     embed_dim: 16
-    lossconfig:
-      target: ldm.modules.losses.LPIPSWithDiscriminator
-      params:
-        disc_start: 50001
-        kl_weight: 0.000001
-        disc_weight: 0.5
+    cw_module_infer: False
+    monitor: val/rec_loss
+    ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/kl-base/2023-09-21T11-56-57_KL_16/checkpoints/epoch=000485.ckpt
 
     ddconfig:
       double_z: True
@@ -23,7 +19,32 @@ model:
       num_res_blocks: 2
       attn_resolutions: [16]
       dropout: 0.0
+    
+    lossconfig:
+      target: ldm.modules.losses.LPIPSWithDiscriminator
+      params:
+        disc_start: 50001
+        kl_weight: 0.000001
+        disc_weight: 0.5
 
+    concept_data:
+      target: main.DataModuleFromConfig
+      params:
+        batch_size: 20
+        num_workers: 8
+        wrap: true
+        train:
+          target: ldm.data.custom.CustomTrain
+          params:
+            training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+            size: 256
+            add_labels: True
+        validation:
+          target: ldm.data.custom.CustomTest
+          params:
+            test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+            size: 256
+            add_labels: True
 
 data:
   target: main.DataModuleFromConfig

@@ -1,0 +1,68 @@
+model:
+  base_learning_rate: 4.5e-6
+  target: ldm.models.cwautoencoder.CWmodelVQGAN
+  project: LDM-base
+  params:
+    embed_dim: 256
+    n_embed: 1024
+    monitor: val/rec_loss
+    ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/cw-base/2023-09-20T20-32-10_vqphylo-config-without-monitor/checkpoints/last.ckpt
+    cw_module_infer: False
+    ddconfig:
+      double_z: False
+      z_channels: 256
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult: [ 1,1,2,2,4]
+      num_res_blocks: 2
+      attn_resolutions: [16]
+      dropout: 0.0
+
+    lossconfig:
+      target: ldm.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+      params:
+        disc_conditional: False
+        disc_in_channels: 3
+        disc_start: 10000
+        disc_weight: 0.8
+        codebook_weight: 1.0
+
+    concept_data:
+      target: main.DataModuleFromConfig
+      params:
+        batch_size: 20
+        num_workers: 8
+        # wrap: true
+        train:
+          target: ldm.data.custom.CustomTrain
+          params:
+            training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+            size: 256
+            add_labels: True
+        validation:
+          target: ldm.data.custom.CustomTest
+          params:
+            test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+            size: 256
+            add_labels: True
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 5
+    num_workers: 8
+    train:
+      target: ldm.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+        size: 256
+        add_labels: true
+    validation:
+      target: ldm.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+        size: 256
+        add_labels: true
+

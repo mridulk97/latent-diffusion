@@ -1,0 +1,64 @@
+model:
+  base_learning_rate: 1.0e-06
+  target: ldm.models.LSFautoencoder.LSFVQVAE
+  project: LDM-base
+  params:
+    # This ckpt_path is to load only the base pretrained VQGAN model
+    # ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-09-21T01-54-33_vq_f8-monitor-new_disc-batch16/checkpoints/epoch=000281.ckpt
+    embed_dim: 4
+    n_embed: 16384
+    monitor: val/rec_loss
+    ddconfig:
+      double_z: false
+      z_channels: 4
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 2
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions:
+      - 32
+      dropout: 0.0
+    lossconfig:
+      target: scripts.modules.losses.DummyLoss
+          
+        
+    LSF_params:
+      learning_rate: 1.0e-4
+      image_size: 32 # not the actual image, input from the base encoder to disentangler (256x16x16)
+      label_size: 38
+      nf: 16
+      hidden_size: 16384
+      nc: 4
+      ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/lsf-base/2023-09-24T18-45-42_vqlsf-f8-monitor-new_disc-batch16-epoch281-nc4-nf16-hidden_size128/checkpoints/epoch=000176.ckpt
+      
+       
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 8
+    num_workers: 8
+    wrap: true
+    train:
+      target: ldm.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+        size: 256
+        add_labels: true
+    validation:
+      target: ldm.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+        size: 256
+        add_labels: true
+
+lightning:
+  trainer:
+    max_epochs: 200
+    profiler: advanced
