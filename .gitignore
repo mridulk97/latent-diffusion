@@ -1,0 +1,17 @@
+scripts/modules/losses/__pycache__/vqperceptual.cpython-38.pyc
+**__pycache__**
+logs/**
+slurm*
+**checkpoint.ipynb
+wandb/**
+taming3/**
+plot/**
+*.path
+*.log
+**events.out.tfevents.*
+lightning_logs/**
+analysis/figs/**
+**vanilla_vqgan_generated
+phylonn.egg-info*
+list.txt
+latent_diffusion.egg-info/
