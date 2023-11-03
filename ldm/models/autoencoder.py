@@ -6,9 +6,17 @@ from contextlib import contextmanager
 from ldm.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from ldm.modules.diffusionmodules.model import Encoder, Decoder
 from ldm.modules.distributions.distributions import DiagonalGaussianDistribution
+from ldm.models.disentanglement.iterative_normalization import IterNormRotation as cw_layer
 
 from ldm.util import instantiate_from_config
 
+
+import os
+import itertools
+import numpy as np
+import pandas as pd
+from ldm.analysis_utils import get_CosineDistance_matrix, aggregatefrom_specimen_to_species
+from ldm.plotting_utils import plot_heatmap_at_path
 
 class VQModel(pl.LightningModule):
     def __init__(self,
@@ -17,6 +25,7 @@ class VQModel(pl.LightningModule):
                  n_embed,
                  embed_dim,
                  ckpt_path=None,
+                 cw_module_infer=False,
                  ignore_keys=[],
                  image_key="image",
                  colorize_nlabels=None,
@@ -32,8 +41,12 @@ class VQModel(pl.LightningModule):
         self.embed_dim = embed_dim
         self.n_embed = n_embed
         self.image_key = image_key
+        self.cw_module_infer = cw_module_infer
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
+        if self.cw_module_infer:
+            self.encoder.norm_out = cw_layer(self.encoder.block_in)
+            print("Changed to cw layer before loading cw model")
         self.loss = instantiate_from_config(lossconfig)
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25,
                                         remap=remap,
@@ -235,7 +248,8 @@ class VQModel(pl.LightningModule):
         if only_inputs:
             log["inputs"] = x
             return log
-        xrec, _ = self(x)
+        # xrec, _ = self(x)
+        xrec = self(x)[0]
         if x.shape[1] > 3:
             # colorize with random projection
             assert xrec.shape[1] > 3
@@ -278,6 +292,39 @@ class VQModelInterface(VQModel):
         quant = self.post_quant_conv(quant)
         dec = self.decoder(quant)
         return dec
+    
+class VQModelInterfacePostQuant(VQModel):
+    def __init__(self, embed_dim, *args, **kwargs):
+        super().__init__(embed_dim=embed_dim, *args, **kwargs)
+        self.embed_dim = embed_dim
+
+    def encode(self, x):
+        h = self.encoder(x)
+        h = self.quant_conv(h)
+        quant, emb_loss, info = self.quantize(h)
+        return quant
+    
+    def decode(self, h, force_not_quantize=False):
+        quant = self.post_quant_conv(h)
+        dec = self.decoder(quant)
+        return dec
+    
+class VQModelInterfacePostQuantConv(VQModel):
+    def __init__(self, embed_dim, *args, **kwargs):
+        super().__init__(embed_dim=embed_dim, *args, **kwargs)
+        self.embed_dim = embed_dim
+
+    def encode(self, x):
+        h = self.encoder(x)
+        h = self.quant_conv(h)
+        quant, emb_loss, info = self.quantize(h)
+        quant = self.post_quant_conv(h)
+        return quant
+    
+    def decode(self, h, force_not_quantize=False):
+        dec = self.decoder(h)
+        return dec
+    
 
 
 class AutoencoderKL(pl.LightningModule):
@@ -288,13 +335,18 @@ class AutoencoderKL(pl.LightningModule):
                  ckpt_path=None,
                  ignore_keys=[],
                  image_key="image",
+                 cw_module_infer=False,
                  colorize_nlabels=None,
-                 monitor=None,
+                 monitor=None
                  ):
         super().__init__()
         self.image_key = image_key
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
+        self.cw_module_infer = cw_module_infer
+        if self.cw_module_infer:
+            self.encoder.norm_out = cw_layer(self.encoder.block_in)
+            print("Changed to cw layer before loading cw model")
         self.loss = instantiate_from_config(lossconfig)
         assert ddconfig["double_z"]
         self.quant_conv = torch.nn.Conv2d(2*ddconfig["z_channels"], 2*embed_dim, 1)
