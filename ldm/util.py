@@ -13,6 +13,18 @@ from queue import Queue
 from inspect import isfunction
 from PIL import Image, ImageDraw, ImageFont
 
+URL_MAP = {
+    "vgg_lpips": "https://heibox.uni-heidelberg.de/f/607503859c864bc1b30b/?dl=1"
+}
+
+CKPT_MAP = {
+    "vgg_lpips": "vgg.pth"
+}
+
+MD5_MAP = {
+    "vgg_lpips": "d507d7349b931f0638a25a48a722f98a"
+}
+
 
 def log_txt_as_img(wh, xc, size=10):
     # wh a tuple of (width, height)

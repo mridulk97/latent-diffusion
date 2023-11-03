@@ -3,8 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 from einops import repeat
 
-from scripts.modules.discriminator.model import NLayerDiscriminator, weights_init
-from scripts.modules.losses.lpips import LPIPS
+from ldm.modules.discriminator.model import NLayerDiscriminator, weights_init
+from ldm.modules.losses.lpips import LPIPS
 # from scripts.modules.losses.vqperceptual import hinge_d_loss, vanilla_d_loss
 
 
@@ -112,21 +112,25 @@ class VQLPIPSWithDiscriminator(nn.Module):
                 global_step, last_layer=None, cond=None, split="train", predicted_indices=None):
         if not torch.is_tensor(codebook_loss):
             codebook_loss = torch.tensor([0.]).to(inputs.device)
-        #rec_loss = torch.abs(inputs.contiguous() - reconstructions.contiguous())
-        rec_loss = self.pixel_loss(inputs.contiguous(), reconstructions.contiguous())
-        if self.perceptual_weight > 0:
-            p_loss = self.perceptual_loss(inputs.contiguous(), reconstructions.contiguous())
-            rec_loss = rec_loss + self.perceptual_weight * p_loss
-        else:
-            p_loss = torch.tensor([0.0])
 
-        nll_loss = rec_loss
-        #nll_loss = torch.sum(nll_loss) / nll_loss.shape[0]
-        nll_loss = torch.mean(nll_loss)
 
         # now the GAN part
         if optimizer_idx == 0:
+
+            #rec_loss = torch.abs(inputs.contiguous() - reconstructions.contiguous())
+            rec_loss = self.pixel_loss(inputs.contiguous(), reconstructions.contiguous())
+            if self.perceptual_weight > 0:
+                p_loss = self.perceptual_loss(inputs.contiguous(), reconstructions.contiguous())
+                rec_loss = rec_loss + self.perceptual_weight * p_loss
+            else:
+                p_loss = torch.tensor([0.0])
+
+            nll_loss = rec_loss
+            #nll_loss = torch.sum(nll_loss) / nll_loss.shape[0]
+            nll_loss = torch.mean(nll_loss)
+
             # generator update
+            g_loss = torch.tensor(0.0)
             if cond is None:
                 assert not self.disc_conditional
                 logits_fake = self.discriminator(reconstructions.contiguous())
@@ -142,7 +146,7 @@ class VQLPIPSWithDiscriminator(nn.Module):
                 assert not self.training
                 d_weight = torch.tensor(0.0)
 
-            disc_factor = adopt_weight(self.disc_factor, global_step, threshold=self.discriminator_iter_start)
+            disc_factor = adopt_weight(self.disc_factor, global_step, threshold=self.discriminator_iter_start) if self.disc_conditional else torch.tensor(0.0)
             loss = nll_loss + d_weight * disc_factor * g_loss + self.codebook_weight * codebook_loss.mean()
 
             log = {"{}/total_loss".format(split): loss.clone().detach().mean(),

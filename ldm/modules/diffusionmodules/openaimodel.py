@@ -739,7 +739,9 @@ class UNetModel(nn.Module):
         if self.predict_codebook_ids:
             return self.id_predictor(h)
         else:
-            return self.out(h)
+            outp = self.out(h)
+            # print('summ    ', outp.sum())
+            return outp
 
 
 class EncoderUNetModel(nn.Module):
