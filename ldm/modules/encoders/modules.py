@@ -3,9 +3,12 @@ import torch.nn as nn
 from functools import partial
 import clip
 from einops import rearrange, repeat
+from transformers import CLIPTokenizer, CLIPTextModel
 # import kornia
 
-
+from transformers import BertTokenizerFast  # TODO: add to reuquirements
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from ldm.modules.x_transformer import Encoder, TransformerWrapper  # TODO: can we directly rely on lucidrains code and simply add this as a reuirement? --> test
 
 
@@ -32,7 +35,48 @@ class ClassEmbedder(nn.Module):
         c = self.embedding(c)
         return c
 
+class HeirClassEmbedder(nn.Module):
+    def __init__(self, embed_dim, n_classes=[3, 6, 9, 38], key='class', device='cuda'):
+        super().__init__()
+        assert embed_dim % len(n_classes) == 0
+        self.key = key
+        self.device = device
+        self.embed_heir_dim = embed_dim//len(n_classes)
+        self.embedding_layers = []
+        self.embedding_level0 = nn.Embedding(n_classes[0], self.embed_heir_dim)
+        self.embedding_level1 = nn.Embedding(n_classes[1], self.embed_heir_dim)
+        self.embedding_level2 = nn.Embedding(n_classes[2], self.embed_heir_dim)
+        self.embedding_level3 = nn.Embedding(n_classes[3], self.embed_heir_dim)
+        for i in list(n_classes):
+            embedding = nn.Embedding(i, self.embed_heir_dim)
+            self.embedding_layers.append(embedding)
 
+    def forward(self, batch, key=None):
+        if key is None:
+            key = self.key
+        # this is for use in crossattn
+        batch_size = len(batch[key][0])
+        heir_classes = batch[key]
+        # heir_classes_list = []
+        # for s in heir_classes:
+        #     numbers = s.split(', ')
+        #     heir_classes_list.extend(int(num) for num in numbers)
+        heir_classes = [[int(num) for num in item.split(', ')] for item in heir_classes[0]]
+        transformed_list = [list(pair) for pair in zip(*heir_classes)]
+        tensor_list = [torch.tensor(sublist).to(self.device) for sublist in transformed_list]
+        tensor_reshaped = [torch.reshape(sublist, (batch_size, 1)) for sublist in tensor_list]
+
+        embedding_list = [self.embedding_level0(tensor_reshaped[0]), self.embedding_level1(tensor_reshaped[1]), 
+                          self.embedding_level2(tensor_reshaped[2]), self.embedding_level3(tensor_reshaped[3])]
+        
+
+
+        # embedding = []
+        # for i, classes in enumerate(heir_classes):
+        #     embedding.append(self.embedding_layers[i](classes))
+        embedding = torch.cat(embedding_list, dim=-1)
+        return embedding
+    
 class TransformerEmbedder(AbstractEncoder):
     """Some transformer encoder layers"""
     def __init__(self, n_embed, n_layer, vocab_size, max_seq_len=77, device="cuda"):
@@ -54,7 +98,6 @@ class BERTTokenizer(AbstractEncoder):
     """ Uses a pretrained BERT tokenizer by huggingface. Vocab size: 30522 (?)"""
     def __init__(self, device="cuda", vq_interface=True, max_length=77):
         super().__init__()
-        from transformers import BertTokenizerFast  # TODO: add to reuquirements
         self.tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
         self.device = device
         self.vq_interface = vq_interface
@@ -134,7 +177,37 @@ class SpatialRescaler(nn.Module):
     def encode(self, x):
         return self(x)
 
+### not using - hugging face implementation
+class FrozenCLIPEmbedder(AbstractEncoder):
+    """Uses the CLIP transformer encoder for text (from Hugging Face)"""
+    def __init__(self, version="openai/clip-vit-large-patch14", device="cuda", max_length=77):
+        super().__init__()
+        self.tokenizer = CLIPTokenizer.from_pretrained(version)
+        self.transformer = CLIPTextModel.from_pretrained(version)
+        self.transformer.projection_dim = 512
+        self.device = device
+        self.max_length = max_length
+        self.freeze()
 
+    def freeze(self):
+        self.transformer = self.transformer.eval()
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def forward(self, text):
+        batch_encoding = self.tokenizer(text, truncation=True, max_length=self.max_length, return_length=True,
+                                        return_overflowing_tokens=False, padding="max_length", return_tensors="pt")
+        tokens = batch_encoding["input_ids"].to(self.device)
+        outputs = self.transformer(input_ids=tokens)
+
+        z = outputs.last_hidden_state
+        # pooled_output = outputs.pooler_output
+        # return pooled_output
+        return z
+
+    def encode(self, text):
+        return self(text)
+    
 class FrozenCLIPTextEmbedder(nn.Module):
     """
     Uses the CLIP transformer encoder for text.

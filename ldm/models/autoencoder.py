@@ -271,6 +271,57 @@ class VQModel(pl.LightningModule):
         x = F.conv2d(x, weight=self.colorize)
         x = 2.*(x-x.min())/(x.max()-x.min()) - 1.
         return x
+        
+    # @torch.no_grad()
+    # def test_step(self, batch, batch_idx):
+    #     x = self.get_input(batch, self.image_key)
+    #     h = self.encoder(x)
+    #     h = self.quant_conv(h)
+    #     class_label = batch['class']
+
+    #     return {'z_cw': h,
+    #             'label': class_label,
+    #             'class_name': batch['class_name']}
+
+    # # NOTE: This is kinda hacky. But ok for now for test purposes.
+    # def set_test_chkpt_path(self, chkpt_path):
+    #     self.test_chkpt_path = chkpt_path
+
+    # @torch.no_grad()
+    # def test_epoch_end(self, in_out):
+    #     postfix_name = 'inference_false'
+    #     z_cw =torch.cat([x['z_cw'] for x in in_out], 0)
+    #     labels =torch.cat([x['label'] for x in in_out], 0)
+    #     sorting_indices = np.argsort(labels.cpu())
+    #     sorted_zq_cw = z_cw[sorting_indices, :]
+
+    #     classnames = list(itertools.chain.from_iterable([x['class_name'] for x in in_out]))
+    #     sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
+    #     z_size = sorted_zq_cw.shape[-1]
+    #     channels = sorted_zq_cw.shape[1]
+    #     # breakpoint()
+    #     figs_folder = os.path.join('/', *self.test_chkpt_path.split('/')[:-2], 'figs/testset_agg')
+    #     if not os.path.exists(figs_folder):
+    #         os.makedirs(figs_folder)
+        
+
+
+    #     sorted_zq_cw_aggregated = aggregatefrom_specimen_to_species(sorted_class_names_according_to_class_indx, sorted_zq_cw, z_size, channels)
+    #     z_cosine_distances = get_CosineDistance_matrix(sorted_zq_cw_aggregated)
+
+    #     plot_heatmap_at_path(z_cosine_distances.cpu(), figs_folder, self.test_chkpt_path, title=f'Cosine_distances_{postfix_name}', postfix='testset_agg')
+
+        
+
+    #     z_cosine_distancess_np = z_cosine_distances.cpu().numpy()
+    #     df = pd.DataFrame(z_cosine_distancess_np)
+    #     df = df.drop(columns=[5, 6])
+    #     df = df.drop([5, 6])
+    #     path_to_save = os.path.join(figs_folder, f'CW_z_cosine_distances_{postfix_name}.csv')
+    #     print("saved to path : ", path_to_save)
+    #     df.to_csv(path_to_save)
+        
+    #     return None
 
 
 class VQModelInterface(VQModel):

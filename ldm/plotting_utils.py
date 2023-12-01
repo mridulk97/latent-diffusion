@@ -151,6 +151,23 @@ def plot_confusionmatrix(preds, classes, classnames, ckpt_path, postfix=None, ti
     
     print(fig_path)
     fig.savefig(os.path.join(fig_path, title+ " heat_map.png"))
+
+def plot_confusionmatrix_colormap(preds, classes, classnames, ckpt_path, postfix=None, title="", get_fig_path=True):
+    fig, ax = plt.subplots(figsize=(30,30))
+    preds_max = np.argmax(preds.cpu().numpy(), axis=-1)
+    class_labels = list(range(38))
+    disp = ConfusionMatrixDisplay.from_predictions(classes.cpu().numpy(), preds_max, display_labels=class_labels, normalize='true', xticks_rotation='vertical', ax=ax, cmap='coolwarm')
+    disp.plot()
+    
+    if get_fig_path:
+        fig_path = get_fig_pth(ckpt_path, postfix=postfix)
+    else:
+        fig_path = ckpt_path
+        if not os.path.exists(fig_path):
+            os.mkdir(fig_path)
+    
+    print(fig_path)
+    fig.savefig(os.path.join(fig_path, title+ " heat_map_coolwarm.png"))
     
 
 class Histogram_plotter:

@@ -1,7 +1,10 @@
 import importlib
 import os
 import torch
+import hashlib
+import requests
 import numpy as np
+from tqdm import tqdm
 from collections import abc
 from einops import rearrange
 from functools import partial
@@ -25,6 +28,10 @@ MD5_MAP = {
     "vgg_lpips": "d507d7349b931f0638a25a48a722f98a"
 }
 
+def md5_hash(path):
+    with open(path, "rb") as f:
+        content = f.read()
+    return hashlib.md5(content).hexdigest()
 
 def log_txt_as_img(wh, xc, size=10):
     # wh a tuple of (width, height)
