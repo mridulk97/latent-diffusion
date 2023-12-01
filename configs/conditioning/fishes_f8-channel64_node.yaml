@@ -1,0 +1,112 @@
+model:
+  base_learning_rate: 1.0e-06
+  target: ldm.models.diffusion.ddpm.LatentDiffusion
+  project: LDM-BERT
+  params:
+    linear_start: 0.0015
+    linear_end: 0.0195
+    num_timesteps_cond: 1
+    log_every_t: 200
+    timesteps: 1000
+    first_stage_key: image
+    cond_stage_key: class_to_node
+    image_size: 32
+    channels: 64
+    cond_stage_trainable: true
+    conditioning_key: crossattn
+    monitor: val/loss_simple_ema
+    unet_config:
+      target: ldm.modules.diffusionmodules.openaimodel.UNetModel
+      params:
+        image_size: 32
+        in_channels: 64
+        out_channels: 64
+        model_channels: 256
+        attention_resolutions:
+        #note: this isn\t actually the resolution but
+        # the downsampling factor, i.e. this corresnponds to
+        # attention on spatial resolution 8,16,32, as the
+        # spatial reolution of the latents is 32 for f8
+        - 4
+        - 2
+        - 1
+        num_res_blocks: 2
+        channel_mult:
+        - 1
+        - 2
+        - 4
+        num_head_channels: 32
+        use_spatial_transformer: true
+        transformer_depth: 1
+        # context_dim: 512
+        context_dim: 640
+    first_stage_config:
+      target: ldm.models.autoencoder.VQModelInterface
+      params:
+        embed_dim: 64
+        n_embed: 16384
+        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-10-24T17-42-38_vq_f8-batch16-channels_64/checkpoints/epoch=000245.ckpt
+        ddconfig:
+          double_z: false
+          z_channels: 64
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult:
+          - 1
+          - 2
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions:
+          - 32
+          dropout: 0.0
+        lossconfig:
+          target: torch.nn.Identity
+    cond_stage_config:
+      target: ldm.modules.encoders.modules.BERTEmbedder
+      params:
+        n_embed: 640
+        n_layer: 32
+        # max_seq_len: 30
+    # cond_stage_config:
+    #   target: ldm.modules.encoders.modules.ClassEmbedder
+    #   params:
+    #     n_classes: 38
+    #     embed_dim: 512
+    #     key: class
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 8
+    num_workers: 8
+    wrap: true
+    train:
+      target: ldm.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+        size: 256
+        add_labels: true
+        class_to_node: /fastscratch/mridul/fishes/class_to_node_bfs.pkl
+    validation:
+      target: ldm.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+        size: 256
+        add_labels: true
+        class_to_node: /fastscratch/mridul/fishes/class_to_node_bfs.pkl
+        
+
+
+# lightning:
+#   callbacks:
+#     image_logger:
+#       target: main.ImageLogger
+#       params:
+#         batch_frequency: 50000
+#         max_images: 8
+#         increase_log_steps: False
+
+#   trainer:
+#     benchmark: True

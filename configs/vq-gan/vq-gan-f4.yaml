@@ -3,13 +3,13 @@ model:
   target: ldm.models.autoencoder.VQModel
   project: LDM-VQ-base
   params:
-    embed_dim: 4
-    n_embed: 16384
+    embed_dim: 3
+    n_embed: 8192
     monitor: val/rec_loss
 
     ddconfig:
       double_z: false
-      z_channels: 48
+      z_channels: 3
       resolution: 256
       in_channels: 3
       out_ch: 3
@@ -17,11 +17,9 @@ model:
       ch_mult:
       - 1
       - 2
-      - 2
       - 4
       num_res_blocks: 2
-      attn_resolutions:
-      - 32
+      attn_resolutions: []
       dropout: 0.0
     lossconfig:
       target: ldm.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
@@ -50,4 +48,3 @@ data:
         test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: true
-
