@@ -1,7 +1,7 @@
 model:
-  base_learning_rate: 1.0e-06
+  base_learning_rate: 4.6e-06
   target: ldm.models.diffusion.ddpm.LatentDiffusion
-  project: LDM-BERT
+  project: CUB-conditioning
   params:
     linear_start: 0.0015
     linear_end: 0.0195
@@ -9,11 +9,10 @@ model:
     log_every_t: 200
     timesteps: 1000
     first_stage_key: image
-    cond_stage_key: class_name
-    # cond_stage_key: class_to_node
+    cond_stage_key: class_to_node
     image_size: 64
     channels: 3
-    cond_stage_trainable: false
+    cond_stage_trainable: true
     conditioning_key: crossattn
     monitor: val/loss_simple_ema
     unet_config:
@@ -40,14 +39,15 @@ model:
         num_head_channels: 32
         use_spatial_transformer: true
         transformer_depth: 1
-        context_dim: 768
+        # context_dim: 512
+        context_dim: 1280
     first_stage_config:
       target: ldm.models.autoencoder.VQModelInterface
       params:
         embed_dim: 3
         n_embed: 8192
-        # ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000137.ckpt
-        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000371.ckpt
+        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/cub_vq-base/2023-11-25T19-34-23_CUB_VQ_f4_org/checkpoints/epoch=000185.ckpt
+        # ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/cub_vq-base/2024-02-23T04-52-39_CUB_VQ_f4_org_cub/checkpoints/epoch=000365.ckpt
         ddconfig:
           double_z: false
           z_channels: 3
@@ -65,15 +65,14 @@ model:
         lossconfig:
           target: torch.nn.Identity
     cond_stage_config:
-      target: ldm.modules.encoders.modules.FrozenCLIPTextEmbedder
-      # params:
-      #   max_length: 77
-    # cond_stage_config:
-    #   target: ldm.modules.encoders.modules.BERTEmbedder
-    #   params:
-    #     n_embed: 640
-    #     n_layer: 32
-        # max_seq_len: 20
+      target: ldm.modules.encoders.modules.BERTEmbedderExtra
+      params:
+        n_embed: 1280
+        # n_embed: 512
+        n_layer: 32
+        max_seq_len: 192
+
+
 data:
   target: main.DataModuleFromConfig
   params:
@@ -83,17 +82,17 @@ data:
     train:
       target: ldm.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_segmented_imagenet_background_bb_crop_256.txt
         size: 256
         add_labels: true
-        class_to_node: /fastscratch/mridul/fishes/class_to_node_bfs.pkl
+        class_to_node: /projects/ml4science/mridul/ldm/data/cub/cub_name_to_node_bfs_weighted.pkl
     validation:
       target: ldm.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_segmented_imagenet_background_bb_crop_256.txt
         size: 256
         add_labels: true
-        class_to_node: /fastscratch/mridul/fishes/class_to_node_bfs.pkl
+        class_to_node: /projects/ml4science/mridul/ldm/data/cub/cub_name_to_node_bfs_weighted.pkl
 
 
 lightning:
@@ -101,7 +100,7 @@ lightning:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 300000
+        batch_frequency: 400000
         max_images: 8
         increase_log_steps: False
 

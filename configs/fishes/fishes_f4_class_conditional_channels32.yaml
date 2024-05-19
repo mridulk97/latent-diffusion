@@ -1,7 +1,7 @@
 model:
-  base_learning_rate: 1.0e-06
+  base_learning_rate: 5.0e-06
   target: ldm.models.diffusion.ddpm.LatentDiffusion
-  project: test-BERT
+  project: Fish-Diffusion
   params:
     linear_start: 0.0015
     linear_end: 0.0195
@@ -11,7 +11,7 @@ model:
     first_stage_key: image
     cond_stage_key: class_label
     image_size: 32
-    channels: 4
+    channels: 32
     cond_stage_trainable: true
     conditioning_key: crossattn
     monitor: val/loss_simple_ema
@@ -19,14 +19,10 @@ model:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
       params:
         image_size: 32
-        in_channels: 4
-        out_channels: 4
+        in_channels: 32
+        out_channels: 32
         model_channels: 256
         attention_resolutions:
-        #note: this isn\t actually the resolution but
-        # the downsampling factor, i.e. this corresnponds to
-        # attention on spatial resolution 8,16,32, as the
-        # spatial reolution of the latents is 32 for f8
         - 4
         - 2
         - 1
@@ -42,14 +38,12 @@ model:
     first_stage_config:
       target: ldm.models.autoencoder.VQModelInterface
       params:
-        embed_dim: 4
+        embed_dim: 32
         n_embed: 16384
-        # ckpt_path: configs/first_stage_models/vq-f8/model.yaml
-        # ckpt_path: /home/mridul/latent-diffusion/logs/run1/2023-09-06T15-21-01_run1_f8/checkpoints/last.ckpt
-        ckpt_path: /home/mridul/latent-diffusion/logs/run1/2023-09-06T15-21-01_run1_f8/checkpoints/epoch=000317.ckpt
+        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-09-28T12-27-28_vq_f8-batch16-channels_32/checkpoints/epoch=000209.ckpt
         ddconfig:
           double_z: false
-          z_channels: 4
+          z_channels: 32
           resolution: 256
           in_channels: 3
           out_ch: 3
@@ -74,7 +68,7 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 16
+    batch_size: 8
     num_workers: 8
     wrap: true
     train:
@@ -96,7 +90,7 @@ lightning:
     image_logger:
       target: main.ImageLogger
       params:
-        batch_frequency: 50000
+        batch_frequency: 3000000
         max_images: 8
         increase_log_steps: False
 

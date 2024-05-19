@@ -9,48 +9,48 @@ model:
     log_every_t: 200
     timesteps: 1000
     first_stage_key: image
-    cond_stage_key: class_name
-    # cond_stage_key: class_to_node
-    image_size: 64
-    channels: 3
+    # cond_stage_key: class_label
+    cond_stage_key: class_to_node
+    image_size: 32
+    channels: 32
     cond_stage_trainable: false
     conditioning_key: crossattn
     monitor: val/loss_simple_ema
+    # scale_factor: 0.18215
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
       params:
-        image_size: 64
-        in_channels: 3
-        out_channels: 3
-        model_channels: 224
+        image_size: 32
+        in_channels: 32
+        out_channels: 32
+        model_channels: 256
         attention_resolutions:
         #note: this isn\t actually the resolution but
         # the downsampling factor, i.e. this corresnponds to
         # attention on spatial resolution 8,16,32, as the
         # spatial reolution of the latents is 32 for f8
-        - 8
         - 4
         - 2
+        - 1
         num_res_blocks: 2
         channel_mult:
         - 1
         - 2
-        - 3
         - 4
         num_head_channels: 32
         use_spatial_transformer: true
         transformer_depth: 1
         context_dim: 768
+        # context_dim: 512
     first_stage_config:
       target: ldm.models.autoencoder.VQModelInterface
       params:
-        embed_dim: 3
-        n_embed: 8192
-        # ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000137.ckpt
-        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000371.ckpt
+        embed_dim: 32
+        n_embed: 16384
+        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-09-28T12-27-28_vq_f8-batch16-channels_32/checkpoints/epoch=000209.ckpt
         ddconfig:
           double_z: false
-          z_channels: 3
+          z_channels: 32
           resolution: 256
           in_channels: 3
           out_ch: 3
@@ -58,9 +58,11 @@ model:
           ch_mult:
           - 1
           - 2
+          - 2
           - 4
           num_res_blocks: 2
-          attn_resolutions: []
+          attn_resolutions:
+          - 32
           dropout: 0.0
         lossconfig:
           target: torch.nn.Identity
@@ -77,7 +79,7 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 8
+    batch_size: 4
     num_workers: 8
     wrap: true
     train:

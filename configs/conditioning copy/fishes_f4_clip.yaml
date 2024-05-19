@@ -41,13 +41,13 @@ model:
         use_spatial_transformer: true
         transformer_depth: 1
         context_dim: 768
+        # context_dim: 512
     first_stage_config:
       target: ldm.models.autoencoder.VQModelInterface
       params:
         embed_dim: 3
         n_embed: 8192
-        # ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000137.ckpt
-        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000371.ckpt
+        ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-11-07T15-07-37_VQ_f4_org/checkpoints/epoch=000137.ckpt
         ddconfig:
           double_z: false
           z_channels: 3

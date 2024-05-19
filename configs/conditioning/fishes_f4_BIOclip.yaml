@@ -40,7 +40,8 @@ model:
         num_head_channels: 32
         use_spatial_transformer: true
         transformer_depth: 1
-        context_dim: 768
+        # context_dim: 768
+        context_dim: 512
     first_stage_config:
       target: ldm.models.autoencoder.VQModelInterface
       params:
@@ -65,7 +66,7 @@ model:
         lossconfig:
           target: torch.nn.Identity
     cond_stage_config:
-      target: ldm.modules.encoders.modules.FrozenCLIPTextEmbedder
+      target: ldm.modules.encoders.modules.FrozenBioClipTextEmbedder
       # params:
       #   max_length: 77
     # cond_stage_config:
