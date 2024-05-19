@@ -1,0 +1,36 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100 #100
+
+# bb_model_path: /globalscratch/mridul/ldm/classification/classification_model_epoch10.path
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_50.path
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_50_new.path
+bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_60_new_again.path
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/resnet34_model_epoch_10_lr0.001_step7.path
+
+#naive bayes
+# dataset_path: logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/figs/generated_dataset/species
+# dataset_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/species
+
+size: 256
+
+file_name: "hle_119_new"
+
+dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/results_classification_new_model
+
+
+
+
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+# # dataset_path: /fastscratch/elhamod/data/Fish/test_padded_256_imagenetmeancolor/
+# save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/results_classification
+
+
+
+# file_name: "vqgan"
+# # dataset_path: /projects/ml4science/mridul/ldm/phylo_nn_samples
+# dataset_path: /projects/ml4science/mridul/ldm/generated_vqgan
+# save_path: /globalscratch/mridul/ldm/classification/results_colorwarm

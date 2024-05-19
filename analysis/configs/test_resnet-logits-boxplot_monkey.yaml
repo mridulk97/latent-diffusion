@@ -1,0 +1,26 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100
+
+bb_model_path: /globalscratch/mridul/ldm/monkeys/classification/resnet18_epoch15_monkeys.path
+
+
+size: 256
+
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+
+
+# file_name: "masked_level_test_try2_sample100_level3"
+# dataset_path: /globalscratch/mridul/ldm/monkeys/sampled_images/hle_335
+dataset_path: /globalscratch/mridul/ldm/monkeys/masking/run1/level1
+box_plot_dir: /home/mridul/latent-diffusion/analysis/images/monkeys/speciesnames_level1
+
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+# box_plot_dir: /home/mridul/latent-diffusion/analysis/images/boxplot_run1/speciesnames_level4
+
+# mean_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_mean.npy'
+# std_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_std.npy'

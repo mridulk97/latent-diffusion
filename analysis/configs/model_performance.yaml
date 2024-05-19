@@ -1,0 +1,25 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200
+
+load_model: CW
+
+
+size: 256
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_test.txt"
+
+## cw
+# ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/cw-base/2023-10-27T15-30-52_vqcw_f8_batch16_channels64_lr4.5e6/checkpoints/epoch=000017.ckpt
+# yaml_path: /fastscratch/mridul/new_diffusion_models/ldm/cw-base/2023-10-27T15-30-52_vqcw_f8_batch16_channels64_lr4.5e6/configs/2023-10-27T15-30-52-project.yaml
+
+## above vq
+ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-10-24T17-42-38_vq_f8-batch16-channels_64/checkpoints/epoch=000245.ckpt
+yaml_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-10-24T17-42-38_vq_f8-batch16-channels_64/configs/2023-10-24T17-42-38-project.yaml
+
+# ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-10-24T17-42-38_vq_f8-batch16-channels_64/configs/2023-10-24T17-42-38-project.yaml
+# yaml_path: /fastscratch/mridul/new_diffusion_models/ldm/vq-base/2023-10-24T17-42-38_vq_f8-batch16-channels_64/checkpoints/epoch=000245.ckpt
+
+# yaml_path: /fastscratch/mridul/new_diffusion_models/ldm/ldm-vq/2023-10-27T20-17-09_CW_batch16-lr1e6-channels64_epoch17/configs/2023-10-27T20-17-09-project.yaml
+# ckpt_path: /fastscratch/mridul/new_diffusion_models/ldm/ldm-vq/2023-10-27T20-17-09_CW_batch16-lr1e6-channels64_epoch17/checkpoints/epoch=000224.ckpt

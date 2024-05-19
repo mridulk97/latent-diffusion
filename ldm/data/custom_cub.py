@@ -28,7 +28,7 @@ class CustomTrain(CustomBase):
         labels=None
         if add_labels:
             labels_per_file = list(map(lambda path: path.split('/')[-2], paths))
-            labels_per_file = [i.split('.')[1].replace('_', ' ') for i in labels_per_file]
+            # labels_per_file = [i.split('.')[1].replace('_', ' ') for i in labels_per_file]
             labels_set = sorted(list(set(labels_per_file)))
             self.labels_to_idx = {label_name: i for i, label_name in enumerate(labels_set)}
 
@@ -37,8 +37,8 @@ class CustomTrain(CustomBase):
                     class_to_node_dict = pickle.load(pickle_file)
                 labels = {
                     CONSTANTS.DISENTANGLER_CLASS_OUTPUT: [self.labels_to_idx[label_name] for label_name in labels_per_file],
-                    CONSTANTS.DATASET_CLASSNAME: labels_per_file,
-                    'class_to_node': [class_to_node_dict[label_name] for label_name in labels_per_file]
+                    CONSTANTS.DATASET_CLASSNAME: [class_to_node_dict[label_name] for label_name in labels_per_file],
+                    # 'class_to_node': [class_to_node_dict[label_name] for label_name in labels_per_file]
                 }
                 # labels = [self.labels_to_idx[label_name] for label_name in labels_per_file]
 
@@ -47,7 +47,6 @@ class CustomTrain(CustomBase):
                     CONSTANTS.DISENTANGLER_CLASS_OUTPUT: [self.labels_to_idx[label_name] for label_name in labels_per_file],
                     CONSTANTS.DATASET_CLASSNAME: labels_per_file
                 }
-                
         self.indx_to_label = {v: k for k, v in self.labels_to_idx.items()}
 
         self.data = ImagePaths(paths=paths, size=size, random_crop=False, horizontalflip=horizontalflip, 

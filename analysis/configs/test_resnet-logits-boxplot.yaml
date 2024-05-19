@@ -1,0 +1,36 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100
+
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_50.path
+bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_60_new_again.path
+
+class_to_node: '/fastscratch/mridul/fishes/class_to_ancestral_label.pkl'
+
+size: 256
+
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+
+
+# # file_name: "masked_level_test_try2_sample100_level3"
+# dataset_path: /projects/ml4science/mridul/ldm/fish_knockout_experiment/noise_experiment/masked_level_test_try2_sample100/level1
+# box_plot_dir: /home/mridul/latent-diffusion/analysis/images/boxplot_run1/speciesnames_level1
+
+# plot_level: 'level3'
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+# dataset_path: /projects/ml4science/mridul/ldm/fish_knockout_experiment/noise_experiment/masked_level_test_try2_sample100/level3
+# box_plot_dir: /home/mridul/latent-diffusion/analysis/images/boxplot_new_class_run2/speciesnames_level3
+
+
+
+# ## Dim: 786
+plot_level: 'level2'
+dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/masking_samples/dim768/level2
+box_plot_dir: /home/mridul/latent-diffusion/analysis/images/boxplot_dim768/speciesnames_level2
+
+# mean_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_mean.npy'
+# std_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_std.npy'

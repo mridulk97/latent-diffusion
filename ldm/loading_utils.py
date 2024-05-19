@@ -1,8 +1,6 @@
 #based on https://github.com/CompVis/taming-transformers
 
 import yaml
-# from ldm.models.autoencoder import VQModel
-# from ldm.models.cwautoencoder import CWmodelVQGAN
 from omegaconf import OmegaConf
 import torch
 from ldm.util import instantiate_from_config
@@ -17,7 +15,6 @@ def load_config(config_path, display=False):
 
 def load_model_from_config(config, ckpt):
     print(f"Loading model from {ckpt}")
-    # breakpoint()
     pl_sd = torch.load(ckpt)#, map_location="cpu")
     sd = pl_sd["state_dict"]
     model = instantiate_from_config(config.model)
@@ -38,5 +35,4 @@ def load_model(config_path, ckpt_path=None):
 
     config = OmegaConf.load(config_path)  
     model = load_model_from_config(config, ckpt_path)
-    breakpoint()
     return model

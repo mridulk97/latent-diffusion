@@ -1,0 +1,25 @@
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100 #100
+
+
+lr: 0.001
+step_size: 7
+num_epochs: 15
+
+# model_path: "/globalscratch/mridul/ldm/classification/models/resnet34_model_epoch_30_lr0.001_step4.path"
+
+model_path: "/globalscratch/mridul/ldm/monkeys/classification/resnet18_epoch15_monkeys.path"
+
+# Just set pretrained_model to None for training species level
+# pretrained_model: None
+
+
+size: 256
+
+# Monkeys
+file_list_path_train: "/projects/ml4science/mridul/data/monkeys_dataset/monkeys_train.txt"
+file_list_path_test: "/projects/ml4science/mridul/data/monkeys_dataset/monkeys_test.txt"
+
+##############

@@ -1,0 +1,27 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100
+
+bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_50.path
+
+
+size: 256
+
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+
+
+# file_name: "masked_level_test_try2_sample100_level1"
+# dataset_path: /projects/ml4science/mridul/ldm/fish_knockout_experiment/noise_experiment/masked_level_test_try2_sample100/level1
+
+# file_name: "hle_119"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/classification_reordered/hle_119
+
+
+## substituion
+dataset_path: /projects/ml4science/mridul/ldm/fish_knockout_experiment/selected_species/run3
+
+# mean_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_mean.npy'
+# std_file_name: '/home/mridul/latent-diffusion/analysis/logits/level1_std.npy'

@@ -1,0 +1,17 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100 #100
+
+
+bb_model_path: /globalscratch/mridul/ldm/final_runs_eccv/fish_classification/resnet18_epoch50_level3.path
+
+
+
+
+size: 256
+
+file_name: "masked_level_test_try2_sample100_level3"
+dataset_path: /projects/ml4science/mridul/ldm/fish_knockout_experiment/noise_experiment/masked_level_test_try2_sample100/level3
+save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/lr5e-5/results_classification_levels

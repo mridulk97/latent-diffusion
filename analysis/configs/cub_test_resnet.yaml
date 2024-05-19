@@ -1,0 +1,16 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 12 #100
+
+bb_model_path: /projects/ml4science/mridul/ldm/cub_samples/classification/models/resnet50_epoch140_lr0.0001_batch12.path
+
+
+size: 256
+
+file_name: "t2t_special_tokens256"
+# dataset_path: /projects/ml4science/mridul/ldm/cub_samples/lr_experiments/cc_lr4.6e-6_epoch113
+dataset_path: /projects/ml4science/mridul/ldm/cub_samples/classification/samples/t2t_special_tokens256
+# dataset_path: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_segmented_imagenet_background_bb_crop_256
+save_path: /projects/ml4science/mridul/ldm/cub_samples/classification/results/lr_experiments

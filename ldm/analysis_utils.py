@@ -1,8 +1,6 @@
-# from scripts.modules.losses.phyloloss import Species_sibling_finder, get_loss_name, get_relative_distance_for_level, parse_phyloDistances
 
 import torch
-# from scipy.spatial import distance as js_distance
-# import pickle
+
 EPS=1e-10
 
 def get_CosineDistance_matrix(features):

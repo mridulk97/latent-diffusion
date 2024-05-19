@@ -1,0 +1,31 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100 #100
+
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_50.path
+# bb_model_path: /globalscratch/mridul/ldm/classification/models/classification_model_epoch_60_new_again.path
+
+
+bb_model_path: "/globalscratch/mridul/ldm/final_runs_eccv/fish_classification/resnet18_epoch10_unseen.path"
+
+# bb_model_path: /globalscratch/mridul/ldm/final_runs_eccv/fish_classification/resnet18_epoch10_leave_out_3species.path
+
+
+size: 256
+
+# file_name: "leave_out"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/leave_out
+# save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/classification_results/
+
+file_name: "leave_out_unseen"
+dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/3species/sampled_images
+save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/classification_results/
+
+
+# file_name: "dim256"
+# dataset_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/dim256
+# save_path: /globalscratch/mridul/ldm/final_runs_eccv/fishes_samples/multi_level/classification_results/
+
+
